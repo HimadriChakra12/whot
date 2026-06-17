@@ -534,12 +534,21 @@ cairo_surface_t *wutil_capture_screen(void) {
      * WL_SHM_FORMAT_ARGB8888 = 0          (wayland canonical)
      * Byte layout (little-endian): B G R X/A
      */
-    if (cs.fmt == WL_SHM_FORMAT_XRGB8888) {
+    if (cs.fmt == WL_SHM_FORMAT_XRGB8888 ||
+        cs.fmt == WL_SHM_FORMAT_XBGR8888) {
         uint8_t *px = cs.sb->data;
         for (int i = 0; i < h; i++) {
             uint32_t *row = (uint32_t *)(px + i * stride);
-            for (int j = 0; j < w; j++)
-                row[j] |= 0xFF000000u;
+            for (int j = 0; j < w; j++) {
+                uint32_t p = row[j] | 0xFF000000u;
+                if (cs.fmt == WL_SHM_FORMAT_XBGR8888) {
+                    p = (p & 0xFF000000u)
+                      | ((p & 0x000000FFu) << 16)
+                      | ((p & 0x0000FF00u))
+                      | ((p & 0x00FF0000u) >> 16);
+                }
+                row[j] = p;
+            }
         }
     }
 
