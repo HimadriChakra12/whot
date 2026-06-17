@@ -140,14 +140,41 @@ static const struct wl_output_listener output_listener = {
 // ── Seat / keyboard / pointer listeners ───────────────────────────────────────
 
 /* forward-declared; filled in in wutil_init() after xkb is set up */
+static int kbd_has_focus = 0; /* 1 once our surface receives wl_keyboard.enter */
+
 static void kbd_keymap(void *d, struct wl_keyboard *k, uint32_t fmt,
                         int32_t fd, uint32_t size);
 static void kbd_enter(void *d, struct wl_keyboard *k, uint32_t serial,
                        struct wl_surface *surf, struct wl_array *keys) {
-    (void)d;(void)k;(void)serial;(void)surf;(void)keys; }
+    (void)d;(void)k;(void)serial;(void)surf;(void)keys;
+    kbd_has_focus = 1;
+}
 static void kbd_leave(void *d, struct wl_keyboard *k, uint32_t serial,
                        struct wl_surface *surf) {
-    (void)d;(void)k;(void)serial;(void)surf; }
+    (void)d;(void)k;(void)serial;(void)surf;
+    kbd_has_focus = 0;
+}
+
+int wutil_has_keyboard_focus(void) { return kbd_has_focus; }
+
+/* Block (dispatching events) until our surface has keyboard focus, or
+ * until max_ms has elapsed — whichever comes first. Returns 1 if focus
+ * was confirmed, 0 if we timed out (caller may proceed anyway; some
+ * compositors don't send enter promptly even though input still works). */
+int wutil_wait_keyboard_focus(int max_ms) {
+    struct timespec start, now;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    while (!kbd_has_focus) {
+        wl_display_flush(wl_disp);
+        /* Use a short blocking dispatch so we don't spin a busy loop */
+        if (wl_display_dispatch(wl_disp) < 0) break;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        long elapsed_ms = (now.tv_sec - start.tv_sec) * 1000L
+                        + (now.tv_nsec - start.tv_nsec) / 1000000L;
+        if (elapsed_ms >= max_ms) break;
+    }
+    return kbd_has_focus;
+}
 
 /* Public event queues — select.c reads these */
 typedef struct { uint32_t key; uint32_t sym; int pressed; } KeyEvent;
@@ -198,8 +225,14 @@ static void kbd_key(void *d, struct wl_keyboard *k, uint32_t serial,
 {
     (void)d;(void)k;(void)serial;(void)time;
     if (!xkb_state) return;
+    /* Only queue presses. select.c's dispatch_key()/phase loops only ever
+     * act on key-down; queuing releases too meant every keypress left a
+     * stale release event sitting in the ring buffer, which would later
+     * get dequeued and (harmlessly, but wastefully) checked against every
+     * keybind in whatever phase happened to be running by then. */
+    if (state != WL_KEYBOARD_KEY_STATE_PRESSED) return;
     uint32_t sym = xkb_state_key_get_one_sym(xkb_state, key + 8);
-    wutil_key_enqueue(sym, state == WL_KEYBOARD_KEY_STATE_PRESSED);
+    wutil_key_enqueue(sym, 1);
 }
 
 static void kbd_modifiers(void *d, struct wl_keyboard *k, uint32_t serial,

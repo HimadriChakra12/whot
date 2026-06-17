@@ -326,9 +326,22 @@ int run_selection(void) {
     wutil_present(cr_surface);
     wutil_dispatch();
 
-    /* Optional startup delay (lets any WM keybind key clear) */
-    struct timespec ts = { 0, OPTGRABDELAY * 1000000L };
-    nanosleep(&ts, NULL);
+    /*
+     * Wait for our overlay surface to actually receive keyboard focus
+     * before reading phase-1 input. Without this, a keypress (e.g. 'f'
+     * for fullscreen) sent immediately after launch can race the
+     * compositor's focus handoff and get delivered to whatever surface
+     * had focus before shot started — so it never reaches kbd_key() at
+     * all and silently does nothing.
+     */
+    if (!wutil_wait_keyboard_focus(OPTGRABDELAY)) {
+        /* Compositor didn't confirm focus in time — give it one more
+         * short grace period rather than failing outright; some
+         * compositors still deliver input correctly without ever
+         * sending an explicit enter event. */
+        struct timespec ts = { 0, OPTGRABDELAY * 1000000L };
+        nanosleep(&ts, NULL);
+    }
 
     /* Cursor: crosshair for phase 1 */
     wutil_set_cursor_image("crosshair");

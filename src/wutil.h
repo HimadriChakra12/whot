@@ -35,6 +35,13 @@ extern struct xkb_context *xkb_ctx;
 extern struct xkb_keymap  *xkb_map;
 extern struct xkb_state   *xkb_state;
 
+// ── Keyboard focus tracking ──────────────────────────────────────────────────
+// 1 once our overlay surface has received wl_keyboard.enter, 0 after leave.
+int wutil_has_keyboard_focus(void);
+// Block (dispatching events) until focus is confirmed or max_ms elapses.
+// Returns 1 if focus was confirmed, 0 on timeout.
+int wutil_wait_keyboard_focus(int max_ms);
+
 // ── Screen capture ────────────────────────────────────────────────────────────
 // Captures the first output; caller owns the returned surface.
 cairo_surface_t *wutil_capture_screen(void);
