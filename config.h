@@ -7,10 +7,8 @@
 #define OPTFORMAT     "%d-%02d-%02d_%02d:%02d:%02d.webp"
 #define OPTFORMATARGS tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, \
                       tm.tm_hour, tm.tm_min, tm.tm_sec
-#define OPTQUALITY    80
+#define OPTQUALITY 80
 
-// ── Scripts ───────────────────────────────────────────────────────────────────
-// Directory scanned for *.sh files (bound to 1–9 in alphabetical order).
 #define OPTSCRIPTDIR "~/.config/screenshot/exec"
 
 #define OPTANNOTATE       "sxat"
@@ -18,17 +16,12 @@
 
 #define OPTGRABDELAY 150
 
-// ── Pre-selection action keybinds ─────────────────────────────────────────────
 #define OPTKEY_FULLSCREEN XKB_KEY_f
 
-// ── Post-selection action keybinds ────────────────────────────────────────────
 #define OPTKEY_SAVE     XKB_KEY_w
 #define OPTKEY_COPY     XKB_KEY_y
 #define OPTKEY_ANNOTATE XKB_KEY_a
 
-// Additional keybinds that run scripts from OPTSCRIPTDIR by name:
-//   { keysym, "script-name-without-.sh" }
-// Example:  #define OPTSCRIPTBINDS { { XKB_KEY_u, "upload" } }
 // #define OPTSCRIPTBINDS { { XKB_KEY_u, "upload" } }
 
 #define OPTWIDTH      1

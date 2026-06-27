@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-// Expand a leading ~ in path into buf (size bufsz).  Returns buf.
 static char *expand_home(const char *path, char *buf, size_t bufsz) {
     if (path[0] != '~') {
         strncpy(buf, path, bufsz - 1);
@@ -34,29 +33,23 @@ int scripts_load(Script scripts[MAX_SCRIPTS]) {
     expand_home(OPTSCRIPTDIR, dir, sizeof(dir));
 
     DIR *d = opendir(dir);
-    if (!d) {
-        debug("Script dir not found: %s", dir);
-        return 0;
-    }
+    if (!d) return 0;
 
     int count = 0;
     struct dirent *ent;
     while ((ent = readdir(d)) && count < MAX_SCRIPTS) {
-        // Only *.sh files
         size_t len = strlen(ent->d_name);
         if (len < 4 || strcmp(ent->d_name + len - 3, ".sh") != 0)
             continue;
 
-        snprintf(scripts[count].path, sizeof(scripts[count].path),
-                 "%s/%s", dir, ent->d_name);
+        Script *s = &scripts[count];
+        snprintf(s->path, sizeof(s->path), "%s/%s", dir, ent->d_name);
 
-        // Name = basename without .sh
-        strncpy(scripts[count].name, ent->d_name,
-                sizeof(scripts[count].name) - 1);
-        scripts[count].name[len - 3] = '\0'; // strip .sh
+        size_t namelen = len - 3;
+        if (namelen >= sizeof(s->name)) namelen = sizeof(s->name) - 1;
+        memcpy(s->name, ent->d_name, namelen);
+        s->name[namelen] = '\0';
 
-        debug("Loaded script [%d] %s -> %s",
-              count, scripts[count].name, scripts[count].path);
         count++;
     }
     closedir(d);
@@ -70,26 +63,21 @@ void scripts_run(const Script *s, const char *filepath, const Rect *r) {
     snprintf(w, sizeof(w), "%d", r->w);
     snprintf(h, sizeof(h), "%d", r->h);
 
-    debug("Running script %s  file=%s  rect=%s,%s %sx%s",
-          s->path, filepath, x, y, w, h);
-
     pid_t pid = fork();
     if (pid < 0) {
         perror("fork");
         return;
     }
     if (pid == 0) {
-        // Child: set env, exec
-        setenv("SCREENSHOT_FILE", filepath,  1);
-        setenv("SCREENSHOT_X",    x,         1);
-        setenv("SCREENSHOT_Y",    y,         1);
-        setenv("SCREENSHOT_W",    w,         1);
-        setenv("SCREENSHOT_H",    h,         1);
+        setenv("SCREENSHOT_FILE", filepath, 1);
+        setenv("SCREENSHOT_X", x, 1);
+        setenv("SCREENSHOT_Y", y, 1);
+        setenv("SCREENSHOT_W", w, 1);
+        setenv("SCREENSHOT_H", h, 1);
 
         char *args[] = { "/bin/sh", (char *)s->path, NULL };
         execvp(args[0], args);
         perror("execvp");
         _exit(1);
     }
-    // Parent returns immediately; script runs in background.
 }
