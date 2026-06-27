@@ -11,7 +11,7 @@
 
 #define OPTSCRIPTDIR "~/.config/screenshot/exec"
 
-#define OPTANNOTATE       "sxat"
+#define OPTANNOTATE       "swat"
 #define OPTANNOTATE_FLAGS "-r"
 
 #define OPTGRABDELAY 150
