@@ -1,28 +1,10 @@
-# whot-wayland
+# whot
 
 A small screenshot tool for **Wayland** compositors — a full
 port of [shot](https://github.com/HimadriChakra12/shot) from X11/Xlib to native
 Wayland protocols.
 
 All features are identical to the original.  Only the display backend changed.
-
----
-
-## What changed from the X11 version
-
-| X11 | Wayland |
-|---|---|
-| `Xlib` (`XOpenDisplay`, `XGetImage`, …) | `wayland-client` |
-| `XCreateWindow` + `override_redirect` overlay | `zwlr_layer_shell_v1` (OVERLAY layer) |
-| `XGetImage` screen capture | `zwlr_screencopy_manager_v1` |
-| `XGrabPointer` / `XGrabKeyboard` | implicit grab from layer-shell EXCLUSIVE keyboard mode |
-| `XPutImage` / `XCopyArea` / `GC` / `Pixmap` | cairo over `wl_shm` |
-| `XCreateFontCursor` | `wayland-cursor` |
-| `X11/keysym.h` / `XK_*` | `xkbcommon` / `XKB_KEY_*` |
-| `xclip` clipboard | `wl-copy` (wl-clipboard) |
-| `xutil.{c,h}` | `wutil.{c,h}` |
-
----
 
 ## Requirements
 
@@ -42,7 +24,7 @@ All features are identical to the original.  Only the display backend changed.
 
 ```sh
 make
-sudo make install   # installs to /usr/local/bin/whot
+sudo make install
 ```
 
 To regenerate protocol glue from XML (only needed if you update the XMLs):
@@ -58,8 +40,8 @@ make
 Identical to the original `shot`:
 
 ```sh
-shot
-shot any-arg   # headless: capture full screen, copy to clipboard via wl-copy
+whot
+whot any-arg
 ```
 
 ### Key bindings (phase 1 — before selecting)
@@ -88,9 +70,6 @@ Requires two wlroots unstable protocols:
 
 - `zwlr_layer_shell_v1` — for the fullscreen input-capturing overlay
 - `zwlr_screencopy_manager_v1` — for screen capture
-
-These are supported by: **Sway**, **Hyprland**, **river**, **wayfire**, **labwc**, and most
-wlroots-based compositors. 
 
 ---
 
