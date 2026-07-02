@@ -4,10 +4,16 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #define OPTDIR        "~/Pictures/screenshots/"
-#define OPTFORMAT     "%d-%02d-%02d_%02d:%02d:%02d.webp"
+#define OPTFORMAT     "%d-%02d-%02d_%02d:%02d:%02d.png"
 #define OPTFORMATARGS tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, \
                       tm.tm_hour, tm.tm_min, tm.tm_sec
-#define OPTQUALITY 80
+
+#define FORMAT_PNG  1
+#define FORMAT_JPEG 2
+#define FORMAT_WEBP 3
+
+#define OPTFORMAT_TYPE FORMAT_PNG
+#define OPTQUALITY     80
 
 #define OPTSCRIPTDIR "~/.config/screenshot/exec"
 

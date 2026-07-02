@@ -1,8 +1,21 @@
 CC      = clang
 CFLAGS  = -O2 -Wall -Wextra -std=c99 -Isrc \
           $(shell pkg-config --cflags wayland-client wayland-cursor cairo xkbcommon)
-LIBS    = $(shell pkg-config --libs   wayland-client wayland-cursor cairo xkbcommon) \
-          -lwebp -lm
+
+# Read format from config.h so the linker flags match the compiled encoder.
+# Defaults to PNG if config.h can't be parsed (cairo handles PNG natively, no extra lib).
+_FMT := $(shell awk '/define OPTFORMAT_TYPE/{print $$3}' config.h)
+
+ifeq ($(_FMT),FORMAT_WEBP)
+  _EXTRA_LIBS = -lwebp
+else ifeq ($(_FMT),FORMAT_JPEG)
+  _EXTRA_LIBS = -ljpeg
+else
+  _EXTRA_LIBS =
+endif
+
+LIBS = $(shell pkg-config --libs wayland-client wayland-cursor cairo xkbcommon) \
+       $(_EXTRA_LIBS) -lm
 
 PREFIX  = /usr/local
 BINDIR  = $(PREFIX)/bin
