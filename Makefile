@@ -43,6 +43,7 @@ all: $(BINARY)
 
 $(BINARY): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LIBS)
+	strip --strip-unneeded $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
