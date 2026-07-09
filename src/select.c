@@ -3,7 +3,6 @@
 #include "select.h"
 #include "wutil.h"
 #include "capture.h"
-#include "scripts.h"
 #include "../config.h"
 
 #include <cairo/cairo.h>
@@ -14,18 +13,11 @@
 
 static Rect   rect;
 static Action chosen_action     = ACTION_NONE;
-static int    chosen_script_idx = -1;
-static Script loaded_scripts[MAX_SCRIPTS];
-static int    nscripts          = 0;
-
 int     select_x(void)          { return rect.x; }
 int     select_y(void)          { return rect.y; }
 int     select_w(void)          { return rect.w; }
 int     select_h(void)          { return rect.h; }
 Action  select_action(void)     { return chosen_action; }
-int     select_script_idx(void) { return chosen_script_idx; }
-Script *select_scripts(void)    { return loaded_scripts; }
-int     select_nscripts(void)   { return nscripts; }
 
 typedef enum {
     ZONE_NONE = 0, ZONE_BODY,
@@ -167,31 +159,6 @@ static int dispatch_key(uint32_t sym) {
     if (sym == OPTKEY_SAVE)     { chosen_action = ACTION_SAVE;     return 1; }
     if (sym == OPTKEY_COPY)     { chosen_action = ACTION_COPY;     return 1; }
     if (sym == OPTKEY_ANNOTATE) { chosen_action = ACTION_ANNOTATE; return 1; }
-
-    if (sym >= XKB_KEY_1 && sym <= XKB_KEY_9) {
-        int idx = (int)(sym - XKB_KEY_1);
-        if (idx < nscripts) {
-            chosen_action     = ACTION_SCRIPT;
-            chosen_script_idx = idx;
-            return 1;
-        }
-        return 0;
-    }
-
-#ifdef OPTSCRIPTBINDS
-    {
-        static const struct { uint32_t sym; const char *name; } kb[] = OPTSCRIPTBINDS;
-        for (size_t i = 0; i < sizeof(kb)/sizeof(kb[0]); i++) {
-            if (sym != kb[i].sym) continue;
-            for (int j = 0; j < nscripts; j++) {
-                if (strcmp(loaded_scripts[j].name, kb[i].name) != 0) continue;
-                chosen_action     = ACTION_SCRIPT;
-                chosen_script_idx = j;
-                return 1;
-            }
-        }
-    }
-#endif
     return 0;
 }
 
@@ -253,10 +220,6 @@ static int do_drag(int already_pressed, int start_x, int start_y) {
 }
 
 int run_selection(void) {
-    nscripts          = scripts_load(loaded_scripts);
-    chosen_action     = ACTION_NONE;
-    chosen_script_idx = -1;
-
     if (!screenshot()) return SELECT_ERROR;
     drawing_init();
 

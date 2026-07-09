@@ -3,7 +3,6 @@
 #include "src/capture.h"
 #include "src/select.h"
 #include "src/save.h"
-#include "src/scripts.h"
 #include "src/state.h"
 
 #include <stdio.h>
@@ -107,12 +106,6 @@ int main(int argc, char *argv[]) {
         case ACTION_ANNOTATE:
             action_annotate(path);
             break;
-        case ACTION_SCRIPT: {
-            int idx = select_script_idx();
-            if (idx >= 0 && idx < select_nscripts())
-                scripts_run(&select_scripts()[idx], path, &r);
-            break;
-        }
         case ACTION_NONE:
         default:
             action_save(path);

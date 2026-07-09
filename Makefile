@@ -30,7 +30,6 @@ SRCS = main.c \
        src/wutil.c \
        src/capture.c \
        src/save.c \
-       src/scripts.c \
        src/select.c \
        $(PROTO_SRCS)
 
