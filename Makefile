@@ -1,5 +1,5 @@
 CC      = clang
-CFLAGS  = -O2 -Wall -Wextra -std=c99 -Isrc \
+CFLAGS  = -Wextra -std=c99 -Isrc \
           $(shell pkg-config --cflags wayland-client wayland-cursor cairo xkbcommon)
 
 # Read format from config.h so the linker flags match the compiled encoder.
