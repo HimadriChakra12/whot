@@ -1,7 +1,6 @@
 #include "config.h"
 #include "src/wutil.h"
 #include "src/capture.h"
-#include "src/select.h"
 #include "src/save.h"
 #include "src/state.h"
 

@@ -1,5 +1,5 @@
 CC      = clang
-CFLAGS  = -Wextra -std=c99 -Isrc \
+CFLAGS  = -Os -pipe -s -Wextra -std=c99 -Isrc \
           $(shell pkg-config --cflags wayland-client wayland-cursor cairo xkbcommon)
 
 # Read format from config.h so the linker flags match the compiled encoder.
@@ -30,7 +30,6 @@ SRCS = main.c \
        src/wutil.c \
        src/capture.c \
        src/save.c \
-       src/select.c \
        $(PROTO_SRCS)
 
 OBJS = $(SRCS:.c=.o)
